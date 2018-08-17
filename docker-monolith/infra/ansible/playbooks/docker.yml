@@ -1,0 +1,37 @@
+---
+- name: Install Docker
+  hosts: all
+  become: true
+  tasks:
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker APT repo
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable
+        state: present
+
+    - name: Install Docker and dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - software-properties-common
+        - docker-ce
+        - python-pip
+    
+    - name: Install docker python library
+      pip:
+        name: docker
+        state: present
+    
+    - name: Enable Docker daemon
+      service:
+        name: docker
+        enabled: yes
+        state: started
