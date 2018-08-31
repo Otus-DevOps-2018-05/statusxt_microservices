@@ -158,7 +158,7 @@ docker run -d --network=reddit -p 9292:9292 statusxt/ui:1.0
 - контейнеры перезапущены с новыми парметрами, теперь данные в базе не зависят о перезапуска контейнеров
 ```
 docker kill $(docker ps -q)
-docker run -d --network=reddit --network-alias=post_db --network-alias=comment_db mongo:latest
+docker run -d --network=reddit --network-alias=post_db --network-alias=comment_db -v reddit_db:/data/db mongo:latest
 docker run -d --network=reddit --network-alias=post statusxt/post:1.0
 docker run -d --network=reddit --network-alias=comment statusxt/comment:1.0
 docker run -d --network=reddit -p 9292:9292 statusxt/ui:2.0
@@ -192,7 +192,7 @@ statusxt/ui    1.0    8c6d705411e2    25 hours ago    778MB
 в каталоге src:
 ```
 docker kill $(docker ps -q)
-docker run -d --network=reddit --network-alias=post_db --network-alias=comment_db mongo:latest
+docker run -d --network=reddit --network-alias=post_db --network-alias=comment_db -v reddit_db:/data/db mongo:latest
 docker run -d --network=reddit --network-alias=post statusxt/post:1.0
 docker run -d --network=reddit --network-alias=comment statusxt/comment:1.0
 docker run -d --network=reddit -p 9292:9292 statusxt/ui:2.0
@@ -201,7 +201,7 @@ docker run -d --network=reddit -p 9292:9292 statusxt/ui:2.0
 в каталоге src:
 ```
 docker kill $(docker ps -q)
-docker run -d --network=reddit --network-alias=post_db --network-alias=comment_db mongo:latest
+docker run -d --network=reddit --network-alias=post_db --network-alias=comment_db -v reddit_db:/data/db mongo:latest
 docker run -d --network=reddit --network-alias=post statusxt/post:1.0
 docker run -d --network=reddit --network-alias=comment statusxt/comment:1.0
 docker run -d --network=reddit -p 9292:9292 statusxt/ui:5.0
