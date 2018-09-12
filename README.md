@@ -6,6 +6,7 @@ statusxt microservices repository
 - [Homework-13 Docker-2](#homework-13-docker-2)
 - [Homework-14 Docker-3](#homework-14-docker-3)
 - [Homework-15 Docker-4](#homework-15-docker-4)
+- [Homework-16 Gitlab-CI-1](#homework-16-gitlab-ci-1)
 
 # Homework 12 Docker-1
 ## 12.1 Что было сделано
@@ -252,7 +253,7 @@ pip install docker-compose
 - создан файл dockercompose.yml с описанием проекта
 - в dockercompose.yml добавлены 2 сети, сетевые алиасы, параметризованы порт публикации, версии сервисов
 - переменные задаются в файле .env
-- базовое имя проета задется переменной COMPOSE_PROJECT_NAME
+- базовое имя проекта задется переменной COMPOSE_PROJECT_NAME
 - работа docker-compose проверена:
 ```
 docker-compose up -d
@@ -269,3 +270,69 @@ docker-compose up -d
 
 ## 15.3 Как проверить
 перейти в браузере по ссылке http://docker-host_ip:9292
+
+# Homework 16 Gitlab-CI-1
+## 16.1 Что было сделано
+- создана ВМ в GCP, установлен docker-ce, docker-compose
+- в каталоге /srv/gitlab/ создан docker-compose.yml с описанием gitlab-ci:
+```
+web:
+  image: 'gitlab/gitlab-ce:latest'
+  restart: always
+  hostname: 'gitlab.example.com'
+  environment:
+    GITLAB_OMNIBUS_CONFIG: |
+      external_url 'http://35.187.88.136'
+  ports:
+    - '80:80'
+    - '443:443'
+    - '2222:22'
+  volumes:
+    - '/srv/gitlab/config:/etc/gitlab'
+    - '/srv/gitlab/logs:/var/log/gitlab'
+    - '/srv/gitlab/data:/var/opt/gitlab'
+```
+- запущен gitlab-ci:
+```
+docker-compose up -d 
+```
+- созданы группа и проект в gitlab-ci
+- добавлен remote в <username>_microservices:
+```
+git checkout -b gitlab-ci-1
+git remote add gitlab http://<your-vm-ip>/homework/example.git
+git push gitlab gitlab-ci-1
+```
+- создан файл .gitlab-ci.yml с описанием пайплайна
+- создан и зарегистрирован runner:
+```
+docker run -d --name gitlab-runner --restart always \
+    -v /srv/gitlab-runner/config:/etc/gitlab-runner \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    gitlab/gitlab-runner:latest 
+docker exec -it gitlab-runner gitlab-runner register
+```
+- добавлен исходный код reddit в репозиторий:
+```
+git clone https://github.com/express42/reddit.git && rm -rf ./reddit/.git
+git add reddit/
+git commit -m “Add reddit app”
+git push gitlab gitlab-ci-1
+```
+- в описание pipeline добавлен вызов теста в файле simpletest.rb
+- добавлена библиотека для тестирования в reddit/Gemfile приложения
+- теперь на каждое изменение в коде приложения будет запущен тест
+
+Интеграция со slack чатом:
+- Project Settings > Integrations > Slack notifications. Нужно установить active, выбрать события и заполнить поля с URL Slack webhook
+- ссылка на тестовый канал https://devops-team-otus.slack.com/messages/CB5SJCHCY/
+
+## 16.2 Как запустить проект
+
+на машине с gitlab-ci в каталоге /srv/gitlab/:
+```
+docker-compose up -d
+```
+
+## 16.3 Как проверить
+перейти в браузере по ссылке http://docker-host_ip
