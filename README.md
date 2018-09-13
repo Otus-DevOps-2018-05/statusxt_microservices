@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/Otus-DevOps-2018-05/statusxt_microservices.svg?branch=master)](https://travis-ci.com/Otus-DevOps-2018-05/statusxt_microservices)
+
 # statusxt_microservices
 statusxt microservices repository
 
@@ -7,6 +9,7 @@ statusxt microservices repository
 - [Homework-14 Docker-3](#homework-14-docker-3)
 - [Homework-15 Docker-4](#homework-15-docker-4)
 - [Homework-16 Gitlab-CI-1](#homework-16-gitlab-ci-1)
+- [Homework-16 Gitlab-CI-1](#homework-16-gitlab-ci-2)
 
 # Homework 12 Docker-1
 ## 12.1 Что было сделано
@@ -335,4 +338,45 @@ docker-compose up -d
 ```
 
 ## 16.3 Как проверить
+перейти в браузере по ссылке http://docker-host_ip
+
+# Homework 17 Gitlab-CI-2
+## 17.1 Что было сделано
+- создан новый проект в gitlab-ci
+- добавлен новый remote в <username>_microservices:
+```
+git checkout -b gitlab-ci-2
+git remote add gitlab2 http://<your-vm-ip>/homework/example2.git
+git push gitlab2 gitlab-ci-2
+```
+- для нового проекта активирован сущестующий runner
+- пайплайн изменен таким образом, чтобы job deploy стал определением окружения dev, на которое условно будет выкатываться каждое изменение в коде проекта
+- определены два новых этапа: stage и production, первый будет содержать job имитирующий выкатку на staging окружение, второй на production окружение
+- staging и production запускаются с кнопки (when: manual)
+- в описание pipeline добавлена директива, которая не позволит нам выкатить на staging и production код, не помеченный с помощью тэга в git:
+```
+...
+staging:
+  stage: stage
+  when: manual
+  only:
+    - /^\d+\.\d+\.\d+/
+  script:
+    - echo 'Deploy'
+  environment:
+    name: stage
+    url: https://beta.example.com
+...
+```
+- в описание pipeline добавлены динамические окружения, теперь на каждую ветку в git отличную от master Gitlab CI будет определять новое окружение
+
+
+## 17.2 Как запустить проект
+
+на машине с gitlab-ci в каталоге /srv/gitlab/:
+```
+docker-compose up -d
+```
+
+## 17.3 Как проверить
 перейти в браузере по ссылке http://docker-host_ip
