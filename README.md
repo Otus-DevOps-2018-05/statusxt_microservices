@@ -9,7 +9,7 @@ statusxt microservices repository
 - [Homework-14 Docker-3](#homework-14-docker-3)
 - [Homework-15 Docker-4](#homework-15-docker-4)
 - [Homework-16 Gitlab-CI-1](#homework-16-gitlab-ci-1)
-- [Homework-16 Gitlab-CI-1](#homework-16-gitlab-ci-2)
+- [Homework-17 Gitlab-CI-2](#homework-17-gitlab-ci-2)
 
 # Homework 12 Docker-1
 ## 12.1 Что было сделано
@@ -372,7 +372,6 @@ staging:
 
 
 ## 17.2 Как запустить проект
-
 на машине с gitlab-ci в каталоге /srv/gitlab/:
 ```
 docker-compose up -d
