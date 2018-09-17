@@ -417,7 +417,7 @@ $ docker build -t $USER_NAME/prometheus .
 /src/post-py $ bash docker_build.sh
 /src/comment $ bash docker_build.sh
 ```
-- определен новый сервис Prometheus в вашем docker/docker-compose.yml, удалены build директивы из docker_compose.yml и использованы директивы image
+- определен новый сервис Prometheus в docker/docker-compose.yml, удалены build директивы из docker_compose.yml и использованы директивы image
 - добавлена секция networks в определение сервиса Prometheus в docker/dockercompose.yml
 - подняты сервисы, определенные в docker/dockercompose.yml, протестирована работа Prometheus
 - определен еще один сервис node-exporter в docker/docker-compose.yml файле для сбора информации о работе Docker хоста (виртуалки, где у нас запущены контейнеры) и предоставлению этой информации в Prometheus
