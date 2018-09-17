@@ -69,7 +69,7 @@ services:
           - node-exporter
 
   mongodb_exporter:
-    image: ${USER_NAME}/mongodb_exporter
+    image: ${USERNAME}/mongodb_exporter
     environment:
       - MONGODB_URL='mongodb://comment_db:27017'
     networks:
@@ -78,7 +78,7 @@ services:
           - mongodb_exporter
 
   blackbox_exporter:
-    image: ${USER_NAME}/blackbox_exporter
+    image: ${USERNAME}/blackbox_exporter
     networks:
       front_net:
 
