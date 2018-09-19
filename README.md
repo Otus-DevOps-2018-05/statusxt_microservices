@@ -471,7 +471,7 @@ make push
 
 # Homework 19 Monitoring-2
 ## 19.1 Что было сделано
-- создано правило фаервола для Prometheus, Puma, Cadvisor, Grafana:
+- созданы правила фаервола для Prometheus, Puma, Cadvisor, Grafana:
 ```
 gcloud compute firewall-rules create prometheus-default --allow tcp:9090
 gcloud compute firewall-rules create puma-default --allow tcp:9292
@@ -551,7 +551,7 @@ docker-compose -f docker-compose-monitoring.yml up -d
 - образы запушены на dockerhub - https://hub.docker.com/u/statusxt/
 
 ## 19.2 Как запустить проект
-- в каталоге /docker/:
+- в каталоге /docker:
 ```
 docker-compose up -d
 docker-compose -f docker-compose-monitoring.yml up -d
