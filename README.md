@@ -12,6 +12,7 @@ statusxt microservices repository
 - [Homework-17 Gitlab-CI-2](#homework-17-gitlab-ci-2)
 - [Homework-18 Monitoring-1](#homework-18-monitoring-1)
 - [Homework-19 Monitoring-2](#homework-19-monitoring-2)
+- [Homework-20 Logging-1](#homework-20-logging-1)
 
 # Homework 12 Docker-1
 ## 12.1 Что было сделано
@@ -561,3 +562,92 @@ docker-compose -f docker-compose-monitoring.yml up -d
 - перейти в браузере по ссылке http://docker-host_ip:3000 (grafana)
 - перейти в браузере по ссылке http://docker-host_ip:9090 (prometheus)
 - перейти в браузере по ссылке http://docker-host_ip:8080 (cadvisor)
+
+# Homework 20 Logging-1
+## 20.1 Что было сделано
+- код в директории /src репозитория обновлен
+- в /src/post-py/Dockerfile добавлена установка пакетов gcc и musl-dev 
+- пересобраны образы из корня репозитория:
+```
+for i in ui post-py comment; do cd src/$i; bash docker_build.sh; cd -; done
+```
+- создан Docker хост в GCE и настроено локальное окружение на работу с ним:
+```
+docker-machine create --driver google \
+    --google-machine-image https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts \
+    --google-machine-type n1-standard-1 \
+    --google-open-port 5601/tcp \
+    --google-open-port 9292/tcp \
+    --google-open-port 9411/tcp \
+    logging
+eval $(docker-machine env logging)
+docker-machine ip logging
+```
+- создан отдельный compose-файл для системылогирования docker/docker-compose-logging.yml 
+- создан logging/fluentd/Dockerfile со следущим содержимым:
+```
+FROM fluent/fluentd:v0.12
+RUN gem install fluent-plugin-elasticsearch --no-rdoc --no-ri --version 1.9.5
+RUN gem install fluent-plugin-grok-parser --no-rdoc --no-ri --version 1.0.0
+ADD fluent.conf /fluentd/etc
+```
+- в директории logging/fluentd создан файл конфигурации fluent.conf
+- собран docker image для fluentd
+```
+docker build -t $USER_NAME/fluentd
+```
+- в .env файле и заменены теги приложения на logging 
+- запущены сервисы приложения
+```
+docker-compose up -d
+```
+- просмотра логов post сервиса:
+```
+docker-compose logs -f post 
+```
+- определен драйвер для логирования для сервиса post внутри compose-файла
+- поднята инфраструктура централизованной системы логирования и перезапущены сервисы приложения:
+```
+docker-compose -f docker-compose-logging.yml up -d
+docker-compose down
+docker-compose up -d 
+```
+- через веб-интерфейс Kibana (порт 5601) создан индекс-маппинг для fluentd и просмотрены собранные логи
+- добавлен фильтр для парсинга json логов, приходящих от post сервиса, в конфиг logging/fluentd/fluent.conf:
+```
+<filter service.post>
+  @type parser
+  format json
+  key_name log
+</filter> 
+```
+- пересобран образ и перезапущен сервис fluentd 
+```
+docker build -t $USER_NAME/fluentd
+docker-compose -f docker-compose-logging.yml up -d fluentd
+```
+- по аналогии с post сервисом определен для ui сервиса драйвер для логирования fluentd в compose-файле docker/docker-compose.yml 
+- перезапущен ui сервис из каталога docker
+```
+docker-compose stop ui
+docker-compose rm ui
+docker-compose up -d 
+```
+- использованы регулярные выражения для парсинга неструктурированных логов в /docker/fluentd/fluent.conf
+- пересобран образ и перезапущен сервис fluentd 
+```
+docker build -t $USER_NAME/fluentd
+docker-compose -f docker-compose-logging.yml up -d fluentd
+```
+- добавлены grok шаблоны для парсинга неструктурированных логов в /docker/fluentd/fluent.conf
+- пересобран образ и перезапущен сервис fluentd, работа проверена
+
+## 20.2 Как запустить проект
+- в каталоге /docker:
+```
+docker-compose up -d
+docker-compose -f docker-compose-logging.yml up -d
+```
+
+## 20.3 Как проверить
+- перейти в браузере по ссылке http://docker-host_ip:5601 (kibana)
