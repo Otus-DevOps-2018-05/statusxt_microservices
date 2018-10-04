@@ -13,6 +13,7 @@ statusxt microservices repository
 - [Homework-18 Monitoring-1](#homework-18-monitoring-1)
 - [Homework-19 Monitoring-2](#homework-19-monitoring-2)
 - [Homework-20 Logging-1](#homework-20-logging-1)
+- [Homework-21 Kubernetes-1](#homework-21-kubernetes-1)
 
 # Homework 12 Docker-1
 ## 12.1 Что было сделано
@@ -651,3 +652,38 @@ docker-compose -f docker-compose-logging.yml up -d
 
 ## 20.3 Как проверить
 - перейти в браузере по ссылке http://docker-host_ip:5601 (kibana)
+
+# Homework 21 Kubernetes-1
+## 21.1 Что было сделано
+- cоздана папка kubernetes в корне репозитория
+- внутри папки kubernetes создана директория reddit
+- созданы файлы post-deployment.yml, ui-deployment.yml, comment-deployment.yml, mongo-deployment.yml в папке kubernetes/reddit
+- пройден туториал Kubernetes The Hard way, разработанный инженером Google Kelsey Hightower
+- все созданные в ходе туториала файлы (кроме бинарных) помещены в папку kubernetes/the_hard_way репозитория
+- проверено, что kubectl apply -f <filename> проходит по созданным до этого deployment-ам (ui, post, mongo, comment) и поды запускаются
+
+## 21.2 Как запустить проект
+- в каталоге /kubernetes/reddit:
+```
+kubectl apply -f post-deployment.yml
+kubectl apply -f mongo-deployment.yml
+kubectl apply -f ui-deployment.yml
+kubectl apply -f comment-deployment.yml
+```
+
+## 21.3 Как проверить
+- в каталоге /kubernetes/reddit:
+```
+kubectl get pods
+```
+- пример вывода:
+```
+NAME                                 READY   STATUS              RESTARTS   AGE
+busybox-bd8fb7cbd-qw5mj              1/1     Running             0          13m
+comment-deployment-b58ddd4cc-mfktv   1/1     Running             0          11s
+mongo-deployment-67f58fb89-cglqv     1/1     Running             0          17s
+nginx-dbddb74b8-nfjqt                1/1     Running             0          10m
+post-deployment-977786747-7w2rp      1/1     Running             0          2m26s
+ui-deployment-7c95b5b68c-pdtdl       1/1     Running             0          6s
+untrusted                            1/1     Running             0          5m19s
+```
