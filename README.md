@@ -690,7 +690,8 @@ untrusted                            1/1     Running             0          5m19
 
 # Homework 22 Kubernetes-2
 ## 22.1 Что было сделано
-- powershell:
+Текущее локальное окружение - WSL. Поэтому необходимо выпорлнить подготовительные действия.
+- Установлен minikube и cubectl в Windows, запущен minikube кластер:
 ```
 wget https://storage.googleapis.com/kubernetes-release/release/v1.9.0/bin/windows/amd64/kubectl.exe -OutFile kubectl.exe
 wget https://storage.googleapis.com/minikube/releases/v0.24.1/minikube-windows-amd64.exe -OutFile minikube.exe
@@ -699,7 +700,7 @@ kubectl.exe config view > $env:TEMP/kubectl-config
 minikube.exe docker-env --shell=bash > $env:TEMP/minikube-config
 Get-ChildItem -File -Filter *-config | % { $x = get-content -raw -path $_.fullname; $x -replace "`r`n","`n" | set-content -path $_.fullname }
 ```
-- wsl:
+- В wsl kubectl настроен на работу с кластером в Windows:
 ```
 curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/bin/linux/amd64/kubectl
 chmod +x ./kubectl
@@ -708,33 +709,39 @@ cd /mnt/$(cmd.exe /c echo\|set /p=%TEMP% | sed --expression='s|\\|/|g' | sed --e
 sed -i 's|\\|/|g' ~/.{kube,minikube}/{config,docker-env}
 sed -i 's|\([ "]\)\([A-Za-z]\):|\1/mnt/\L\2|' ~/.{kube,minikube}/{config,docker-env}
 ```
-- созданы файлы post-deployment.yml, ui-deployment.yml, comment-deployment.yml, mongo-deployment.yml в папке kubernetes/reddit
-- пройден туториал Kubernetes The Hard way, разработанный инженером Google Kelsey Hightower
-- все созданные в ходе туториала файлы (кроме бинарных) помещены в папку kubernetes/the_hard_way репозитория
-- проверено, что kubectl apply -f <filename> проходит по созданным до этого deployment-ам (ui, post, mongo, comment) и поды запускаются
+- созданы конфигурации деплойментов post-deployment.yml, ui-deployment.yml, comment-deployment.yml, mongo-deployment.yml в папке kubernetes/reddit
+- созданы объекты service для связи компонентов друг с другом: post-service.yml, comment-service.yml, mongodb-service.yml
+- для доступа компонентов к одному ресурсу под разными именами созданы сервисы comment-mongodb-service.yml и post-mongodb-service.yml
+- создан сервис типа NodePort для доступу к ui-сервису снаружи
+- создан Namespace dev dev-namespace.yml
+- добавлена инфа об окружении внутрь контейнера UI ui-deployment.yml (env:)
+- приложение запущено в dev неймспейсе:
+```
+kubectl apply -n dev -f .
+```
+
+- создан кластер в GKE
+- приложение развернуто в GKE:
+```
+gcloud container clusters get-credentials cluster-1 --zone europe-west1-b --project docker-213305
+kubectl apply -f dev-namespace.yml
+kubectl apply -f . -n dev
+```
+- создано правило брандмауэра для доступа к портам tcp:30000-32767
+- найден внешний адрес и порт публикации ui-сервиса:
+```
+kubectl get nodes -o wide
+kubectl describe service ui -n dev | grep NodePort
+kubectl apply -f . -n dev
+```
+- приложение проверено в браузере по адресу http://<node-ip>:<NodePort>
 
 ## 22.2 Как запустить проект
 - в каталоге /kubernetes/reddit:
 ```
-kubectl apply -f post-deployment.yml
-kubectl apply -f mongo-deployment.yml
-kubectl apply -f ui-deployment.yml
-kubectl apply -f comment-deployment.yml
+kubectl apply -f dev-namespace.yml
+kubectl apply -f . -n dev
 ```
 
 ## 22.3 Как проверить
-- в каталоге /kubernetes/reddit:
-```
-kubectl get pods
-```
-- пример вывода:
-```
-NAME                                 READY   STATUS              RESTARTS   AGE
-busybox-bd8fb7cbd-qw5mj              1/1     Running             0          13m
-comment-deployment-b58ddd4cc-mfktv   1/1     Running             0          11s
-mongo-deployment-67f58fb89-cglqv     1/1     Running             0          17s
-nginx-dbddb74b8-nfjqt                1/1     Running             0          10m
-post-deployment-977786747-7w2rp      1/1     Running             0          2m26s
-ui-deployment-7c95b5b68c-pdtdl       1/1     Running             0          6s
-untrusted                            1/1     Running             0          5m19s
-```
+- перейти в браузере по ссылке http://<node-ip>:<NodePort>
