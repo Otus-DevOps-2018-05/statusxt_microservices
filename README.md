@@ -746,7 +746,7 @@ kubectl apply -f . -n dev
 ```
 
 ## 22.3 Как проверить
-- перейти в браузере по ссылке http://<node-ip>:<NodePort>
+- перейти в браузере по ссылке http://node-ip:NodePort
 
 # Homework 23 Kubernetes-3
 ## 23.1 Что было сделано
