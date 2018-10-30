@@ -809,4 +809,4 @@ kubectl apply -f . -n dev
 ```
 
 ## 23.3 Как проверить
-- перейти в браузере по ссылке https://<ingress-ip>
+- перейти в браузере по ссылке https://ingress-ip
