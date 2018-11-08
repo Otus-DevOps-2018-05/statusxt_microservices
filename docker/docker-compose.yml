@@ -34,57 +34,8 @@ services:
           - comment
       back_net:
 
-  prometheus:
-    image: ${USERNAME}/prometheus
-    ports:
-      - '9090:9090'
-    volumes:
-      - prometheus_data:/prometheus
-    networks:
-      back_net:
-        aliases:
-          - prometheus
-      front_net:
-        aliases:
-          - prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention=1d'
-
-  node-exporter:
-    image: prom/node-exporter:v0.15.2
-    user: root
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.ignored-mount-points="^/(sys|proc|dev|host|etc)($$|/)"'
-    networks:
-      back_net:
-        aliases:
-          - node-exporter
-
-  mongodb_exporter:
-    image: ${USERNAME}/mongodb_exporter
-    environment:
-      - MONGODB_URL='mongodb://comment_db:27017'
-    networks:
-      back_net:
-        aliases:
-          - mongodb_exporter
-
-  blackbox_exporter:
-    image: ${USERNAME}/blackbox_exporter
-    networks:
-      front_net:
-
 volumes:
   post_db:
-  prometheus_data:
 
 networks:
   front_net:
