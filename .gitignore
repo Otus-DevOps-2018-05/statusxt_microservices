@@ -11,3 +11,6 @@
 *.retry
 docker-*.json
 vault.key
+#
+# Docker
+.env
