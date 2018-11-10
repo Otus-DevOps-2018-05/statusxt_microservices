@@ -1,5 +1,8 @@
 FROM python:3.6.0-alpine
 
+RUN apk add --no-cache --virtual .build gcc \
+                                        musl-dev
+
 WORKDIR /app
 ADD . /app
 
