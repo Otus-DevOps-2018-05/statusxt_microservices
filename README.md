@@ -687,3 +687,61 @@ post-deployment-977786747-7w2rp      1/1     Running             0          2m26
 ui-deployment-7c95b5b68c-pdtdl       1/1     Running             0          6s
 untrusted                            1/1     Running             0          5m19s
 ```
+
+# Homework 22 Kubernetes-2
+## 22.1 Что было сделано
+Текущее локальное окружение - WSL. Поэтому необходимо выпорлнить подготовительные действия.
+- Установлен minikube и cubectl в Windows, запущен minikube кластер:
+```
+wget https://storage.googleapis.com/kubernetes-release/release/v1.9.0/bin/windows/amd64/kubectl.exe -OutFile kubectl.exe
+wget https://storage.googleapis.com/minikube/releases/v0.24.1/minikube-windows-amd64.exe -OutFile minikube.exe
+minikube.exe start --vm-driver=hyperv --hyperv-virtual-switch="Primary Virtual Switch"
+kubectl.exe config view > $env:TEMP/kubectl-config
+minikube.exe docker-env --shell=bash > $env:TEMP/minikube-config
+Get-ChildItem -File -Filter *-config | % { $x = get-content -raw -path $_.fullname; $x -replace "`r`n","`n" | set-content -path $_.fullname }
+```
+- В wsl kubectl настроен на работу с кластером в Windows:
+```
+curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/bin/linux/amd64/kubectl
+chmod +x ./kubectl
+sudo mv ./kubectl /usr/local/bin/kubectl
+cd /mnt/$(cmd.exe /c echo\|set /p=%TEMP% | sed --expression='s|\\|/|g' | sed --expression='s|^\([A-Za-z]\):|\L\1|')
+sed -i 's|\\|/|g' ~/.{kube,minikube}/{config,docker-env}
+sed -i 's|\([ "]\)\([A-Za-z]\):|\1/mnt/\L\2|' ~/.{kube,minikube}/{config,docker-env}
+```
+- созданы конфигурации деплойментов post-deployment.yml, ui-deployment.yml, comment-deployment.yml, mongo-deployment.yml в папке kubernetes/reddit
+- созданы объекты service для связи компонентов друг с другом: post-service.yml, comment-service.yml, mongodb-service.yml
+- для доступа компонентов к одному ресурсу под разными именами созданы сервисы comment-mongodb-service.yml и post-mongodb-service.yml
+- создан сервис типа NodePort для доступу к ui-сервису снаружи
+- создан Namespace dev dev-namespace.yml
+- добавлена инфа об окружении внутрь контейнера UI ui-deployment.yml (env:)
+- приложение запущено в dev неймспейсе:
+```
+kubectl apply -n dev -f .
+```
+
+- создан кластер в GKE
+- приложение развернуто в GKE:
+```
+gcloud container clusters get-credentials cluster-1 --zone europe-west1-b --project docker-213305
+kubectl apply -f dev-namespace.yml
+kubectl apply -f . -n dev
+```
+- создано правило брандмауэра для доступа к портам tcp:30000-32767
+- найден внешний адрес и порт публикации ui-сервиса:
+```
+kubectl get nodes -o wide
+kubectl describe service ui -n dev | grep NodePort
+kubectl apply -f . -n dev
+```
+- приложение проверено в браузере по адресу http://<node-ip>:<NodePort>
+
+## 22.2 Как запустить проект
+- в каталоге /kubernetes/reddit:
+```
+kubectl apply -f dev-namespace.yml
+kubectl apply -f . -n dev
+```
+
+## 22.3 Как проверить
+- перейти в браузере по ссылке http://<node-ip>:<NodePort>
