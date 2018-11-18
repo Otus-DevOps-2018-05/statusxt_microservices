@@ -1,0 +1,8 @@
+---
+name: comment
+version: 1.0.0
+description: OTUS reddit application COMMENT
+maintainers:
+  - name: Daniil Tsebro
+    email: statusxt@gmail.com
+appVersion: 1.0
