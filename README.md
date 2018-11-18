@@ -14,6 +14,8 @@ statusxt microservices repository
 - [Homework-19 Monitoring-2](#homework-19-monitoring-2)
 - [Homework-20 Logging-1](#homework-20-logging-1)
 - [Homework-21 Kubernetes-1](#homework-21-kubernetes-1)
+- [Homework-22 Kubernetes-2](#homework-22-kubernetes-2)
+- [Homework-23 Kubernetes-3](#homework-23-kubernetes-3)
 
 # Homework 12 Docker-1
 ## 12.1 Что было сделано
@@ -744,4 +746,67 @@ kubectl apply -f . -n dev
 ```
 
 ## 22.3 Как проверить
-- перейти в браузере по ссылке http://<node-ip>:<NodePort>
+- перейти в браузере по ссылке http://node-ip:NodePort
+
+# Homework 23 Kubernetes-3
+## 23.1 Что было сделано
+- Проверена работа kube-dns:
+```
+kubectl scale deployment --replicas 0 -n kube-system kube-dns-autoscaler
+kubectl scale deployment --replicas 0 -n kube-system kube-dns
+kubectl exec -ti -n dev <имя любого pod-а> ping comment
+kubectl scale deployment --replicas 1 -n kube-system kube-dnsautoscaler
+```
+- Service UI настроен как LoadBalancer. Недостатки: нельзя управлять с помощью http URI (L7-балансировка), используются только облачные балансировщики (AWS,
+GCP), нет гибких правил работы с трафиком.
+- создан Ingress для сервиса UI, LoadBalancer убран из ui-service.yml
+- сервис защищен с помощью TLS, ui-ingress.yml настроен на прием только HTTPS траффика:
+```
+kubectl get ingress -n dev
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=35.227.210.219"
+kubectl create secret tls ui-ingress --key tls.key --cert tls.crt -n dev
+kubectl describe secret ui-ingress -n dev
+kubectl delete ingress ui -n dev
+kubectl apply -f ui-ingress.yml -n dev
+```
+- создан mongo-network-policy.yml, разрешен доступ к mongo с post и comment
+```
+kubectl apply -f mongo-network-policy.yml -n dev
+```
+- создан диск в Google Cloud, добавлен новый Volume POD-у базы (gcePersistentDisk). Проверено, что теперь при пересоздании пода данные в базе не теряются.
+- создано описание PersistentVolume mongo-volume.yml (ресурс дискового хранилища, распространенный на весь кластер, в виде PersistentVolume)
+- создан запрос на выдачу - PersistentVolumeClaim mongo-claim.yml, чтобы выделить приложению часть ресурса PersistentVolume
+- PVC подключен к нашим Pod'ам:
+```
+mongo-deployment.yml
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+ name: mongo
+...
+  spec:
+    containers:
+    - image: mongo:3.2
+      name: mongo
+      volumeMounts:
+      - name: mongo-persistent-storage
+        mountPath: /data/db
+    volumes:
+    - name: mongo-persistent-storage
+      persistentVolumeClaim:
+        claimName: mongo-pvc
+```
+- создан StorageClass Fast storage-fast.yml так, чтобы монтировались SSD-диски для работы нашего хранилища
+- создано описание PersistentVolumeClaim mongo-claim-dynamic.yml
+- динамический PVC подключен к нашим Pod'ам (claimName: mongo-pvc-dynamic)
+
+## 23.2 Как запустить проект
+- в каталоге /kubernetes/reddit:
+```
+kubectl apply -f dev-namespace.yml
+kubectl apply -f . -n dev
+```
+
+## 23.3 Как проверить
+- перейти в браузере по ссылке https://ingress-ip
